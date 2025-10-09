@@ -1,0 +1,31 @@
+
+Function ipn_d1(spot, K, r, q, sigma, tenor)
+ipn_d1 = ((Log(spot / K)) + (((r - q) + ((sigma * sigma) / 2)) * (tenor / 360))) / (sigma * (tenor / 360) ^ (0.5))
+End Function
+
+Function ipn_d2(spot, K, r, q, sigma, tenor)
+ipn_d2 = ((Log(spot / K)) + (((r - q) - ((sigma * sigma) / 2)) * (tenor / 360))) / (sigma * (tenor / 360) ^ (0.5))
+End Function
+
+
+
+
+
+Function Mix_BS_put(spot, K, r, q, sigma, tenor)
+
+d1 = ((Log(spot / K)) + (((r - q) + ((sigma * sigma) / 2)) * (tenor / 360))) / (sigma * (tenor / 360) ^ (0.5))
+d2 = ((Log(spot / K)) + (((r - q) - ((sigma * sigma) / 2)) * (tenor / 360))) / (sigma * (tenor / 360) ^ (0.5))
+
+Mix_BS_put = K * Exp(-r * tenor / 360) * Application.NormSDist(-d2) - spot * Exp(-q * tenor / 360) * Application.NormSDist(-d1)
+
+End Function
+
+Function ipn_BS_Delta_call(q, tenor, d1)
+ipn_BS_Delta_call = (Exp(-q * tenor)) * (Application.NormSDist(d1))
+
+End Function
+
+Function ipn_BS_Delta_put(q, tenor, d1)
+ipn_BS_Delta_put = (-1) * (Exp(-q * tenor)) * (Application.NormSDist((-1) * d1))
+
+End Function
