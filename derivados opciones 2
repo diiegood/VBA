@@ -1,0 +1,38 @@
+Function Mix_BS_call(spot, K, r, q, sigma, tenor)
+
+d1 = ((Log(spot / K)) + (((r - q) + ((sigma * sigma) / 2)) * (tenor / 360))) / (sigma * (tenor / 360) ^ (0.5))
+d2 = ((Log(spot / K)) + (((r - q) - ((sigma * sigma) / 2)) * (tenor / 360))) / (sigma * (tenor / 360) ^ (0.5))
+
+Mix_BS_call = spot * Exp(-q * tenor / 360) * Application.NormSDist(d1) - K * Exp(-r * tenor / 360) * Application.NormSDist(d2)
+
+End Function
+'DELTA K
+Function Delta_Call(spot As Double, K As Double, r As Double, q As Double, T As Double, sigma As Double) As Double
+'Calcular D1
+Dim Nd1 As Double
+d1 = (((Log(spot / K)) + (((r - q) + (sigma * sigma) / 2) * T / 360))) / (sigma * Sqr(T / 360))
+Nd1 = Application.NormSDist(d1)
+'Calcular la Delta del Call
+Delta_Call = Exp(-q * T / 360) * Nd1
+End Function
+'DELTA K
+Function Delta_Put(spot As Double, K As Double, r As Double, q As Double, T As Double, sigma As Double) As Double
+'Calcular D1
+Dim d1 As Double
+d1 = (((Log(spot / K)) + (((r - q) + (sigma * sigma) / 2) * T / 360))) / (sigma * Sqr(T / 360))
+'Calcular N(d1)
+Dim Nd1 As Double
+Nd1 = Application.NormSDist(d1)
+'Calcular la Delta del Put
+Delta_Put = Exp(-q * T / 360) * (Nd1 - 1)
+End Function
+'GAMMA CALL
+Function Gamma_call(spot As Double, K As Double, r As Double, q As Double, T As Double, sigma As Double) As Double
+'Calcular D1
+Dim d1 As Double
+d1 = (((Log(spot / K)) + (((r - q) + (sigma * sigma) / 2) * T / 360))) / (sigma * Sqr(T / 360))
+Dim nnd1 As Double
+nnd1 = Application.NormSInv(d1)
+Gamma_call = (Exp(-q * T / 360) * nnd1) / (spot * sigma * ((tenor / 360) ^ (0.5)))
+
+End Function
