@@ -7,7 +7,7 @@ Sub CargarDatosMXP_Rango()
     Dim SSItext As String
     
     ' Asignar hojas
-    Set wsOrigen = ThisWorkbook.Sheets("Reporte Garantias")
+    Set wsOrigen = ThisWorkbook.Sheets("Reporte de Garantias")
     Set wsDestino = ActiveSheet
     
     ' Última fila con datos en hoja origen
@@ -58,7 +58,8 @@ Sub CargarDatosMXP_Rango()
         
     Next i
     
-    MsgBox "Datos en MXP cargados correctamente en el rango D31:H38 sin bordes.", vbInformation
+    MsgBox "Proceso completado Datos cargados MXP.", vbInformation
 
 End Sub
+
 
