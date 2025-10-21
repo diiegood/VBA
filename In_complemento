@@ -1,0 +1,40 @@
+Sub FormatoIndependienteReporteGarantias()
+
+    Dim ws As Worksheet
+    Dim ultimaHoja As Long
+    
+    ' Usar la última hoja del libro
+    ultimaHoja = ThisWorkbook.Sheets.Count
+    Set ws = ThisWorkbook.Sheets(ultimaHoja)
+    
+    ' Verificar si es "Reporte Garantias" por si la última hoja cambia de posición
+    If ws.Name <> "Reporte Garantias" Then
+        Set ws = ThisWorkbook.Sheets("Reporte de Garantias")
+    End If
+    
+    ' Limpiar formatos heredados
+    ws.Cells.ClearFormats
+    
+    ' Opcional: ajustar ancho de columnas y altura de filas a un valor estándar
+    ws.Cells.ColumnWidth = 12   ' ancho estándar de columna
+    ws.Cells.RowHeight = 15      ' altura estándar de fila
+    
+    ' Opcional: quitar cualquier protección
+    ws.Unprotect
+    
+    ' Opcional: volver a aplicar solo bordes si quieres
+    ' ws.Range("A1:Z1000").Borders.LineStyle = xlContinuous
+    
+    MsgBox "La hoja de Reporte de Garantias tiene un formato diferente.", vbInformation
+
+End Sub
+
+Sub BorrarDatosFilas31a40()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    
+    ' Limpiar solo los valores de las filas 31 a 40
+    ws.Rows("31:40").ClearContents
+    
+    MsgBox "Depuracion de datos completada.", vbInformation
+End Sub
