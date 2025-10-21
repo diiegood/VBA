@@ -1,0 +1,64 @@
+Sub CargarDatosMXP_Rango()
+
+    Dim wsOrigen As Worksheet
+    Dim wsDestino As Worksheet
+    Dim ultimaFila As Long
+    Dim i As Long, filaDestino As Long
+    Dim SSItext As String
+    
+    ' Asignar hojas
+    Set wsOrigen = ThisWorkbook.Sheets("Reporte Garantias")
+    Set wsDestino = ActiveSheet
+    
+    ' Última fila con datos en hoja origen
+    ultimaFila = wsOrigen.Cells(wsOrigen.Rows.Count, "A").End(xlUp).Row
+    
+    ' Limpiar el rango destino (D31:H38) y quitar bordes
+    With wsDestino.Range("D31:H38")
+        .ClearContents
+        .Borders.LineStyle = xlNone
+    End With
+    
+    ' Inicializar fila destino
+    filaDestino = 31
+    
+    ' Recorrer las filas del reporte
+    For i = 2 To ultimaFila
+        
+        ' Filtrar solo moneda MXP
+        If Trim(UCase(wsOrigen.Cells(i, "H").Value)) = "MXP" Then
+            
+            ' Concatenar texto SSI
+            SSItext = ""
+            If wsOrigen.Cells(i, "M").Value <> "" Then SSItext = SSItext & "BIC Corresponsal: " & wsOrigen.Cells(i, "M").Value & vbNewLine
+            If wsOrigen.Cells(i, "N").Value <> "" Then SSItext = SSItext & "Banco Corresponsal: " & wsOrigen.Cells(i, "N").Value & vbNewLine
+            If wsOrigen.Cells(i, "P").Value <> "" Then SSItext = SSItext & "BIC Beneficiario: " & wsOrigen.Cells(i, "P").Value & vbNewLine
+            If wsOrigen.Cells(i, "Q").Value <> "" Then SSItext = SSItext & "Cuenta Beneficiario: " & wsOrigen.Cells(i, "Q").Value
+            
+            ' Colocar contraparte (SSI)
+            wsDestino.Cells(filaDestino, "D").Value = wsOrigen.Cells(i, "C").Value
+            
+            ' Colocar importe según tipo de operación desde columna F
+            If UCase(wsOrigen.Cells(i, "D").Value) = "ENTRADA" Then
+                wsDestino.Cells(filaDestino, "E").Value = wsOrigen.Cells(i, "F").Value
+            ElseIf UCase(wsOrigen.Cells(i, "D").Value) = "SALIDA" Then
+                wsDestino.Cells(filaDestino, "F").Value = wsOrigen.Cells(i, "F").Value
+            End If
+            
+            ' Colocar SSI en columna H
+            wsDestino.Cells(filaDestino, "H").Value = SSItext
+            wsDestino.Cells(filaDestino, "H").WrapText = True
+            
+            ' Avanzar a la siguiente fila
+            filaDestino = filaDestino + 1
+            
+            ' Detener si se supera la fila 38
+            If filaDestino > 38 Then Exit For
+        End If
+        
+    Next i
+    
+    MsgBox "Datos en MXP cargados correctamente en el rango D31:H38 sin bordes.", vbInformation
+
+End Sub
+
