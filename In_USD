@@ -5,6 +5,7 @@ Sub CargarDatosUSD_Rango()
     Dim ultimaFila As Long
     Dim i As Long, filaDestino As Long
     Dim SSItext As String
+    Dim tipoOp As String
     
     ' Asignar hojas
     Set wsOrigen = ThisWorkbook.Sheets("Reporte de Garantias")
@@ -13,54 +14,72 @@ Sub CargarDatosUSD_Rango()
     ' Última fila con datos en hoja origen
     ultimaFila = wsOrigen.Cells(wsOrigen.Rows.Count, "A").End(xlUp).Row
     
-    ' Limpiar el rango destino (D31:H38) y quitar bordes
-    With wsDestino.Range("D31:H38")
+    ' Limpiar el rango destino (A21:D29)
+    With wsDestino.Range("A21:D29")
         .ClearContents
         .Borders.LineStyle = xlNone
+        .Font.Name = "Arial"
+        .Font.Size = 11
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
     End With
     
     ' Inicializar fila destino
-    filaDestino = 31
+    filaDestino = 21
     
-    ' Recorrer las filas del reporte
+    ' Recorrer filas del reporte
     For i = 2 To ultimaFila
         
-        ' Filtrar solo moneda USD
-        If Trim(UCase(wsOrigen.Cells(i, "H").Value)) = "USD" Then
+        tipoOp = UCase(Trim(wsOrigen.Cells(i, "D").Value))
+        
+        ' Solo moneda USD y tipo válido
+        If Trim(UCase(wsOrigen.Cells(i, "H").Value)) = "USD" And _
+           (tipoOp = "ENTRADA" Or tipoOp = "SALIDA") Then
             
-            ' Concatenar texto SSI
-            SSItext = ""
-            If wsOrigen.Cells(i, "M").Value <> "" Then SSItext = SSItext & "BIC Corresponsal: " & wsOrigen.Cells(i, "M").Value & vbNewLine
-            If wsOrigen.Cells(i, "N").Value <> "" Then SSItext = SSItext & "Banco Corresponsal: " & wsOrigen.Cells(i, "N").Value & vbNewLine
-            If wsOrigen.Cells(i, "P").Value <> "" Then SSItext = SSItext & "BIC Beneficiario: " & wsOrigen.Cells(i, "P").Value & vbNewLine
-            If wsOrigen.Cells(i, "Q").Value <> "" Then SSItext = SSItext & "Cuenta Beneficiario: " & wsOrigen.Cells(i, "Q").Value
+            ' Colocar contraparte (columna C origen ? A destino)
+            wsDestino.Cells(filaDestino, "A").Value = wsOrigen.Cells(i, "C").Value
             
-            ' Colocar contraparte (SSI)
-            wsDestino.Cells(filaDestino, "D").Value = wsOrigen.Cells(i, "C").Value
+            ' Si es ENTRADA
+            If tipoOp = "ENTRADA" Then
+                wsDestino.Cells(filaDestino, "B").Value = wsOrigen.Cells(i, "F").Value
+                wsDestino.Cells(filaDestino, "C").ClearContents
+                wsDestino.Cells(filaDestino, "D").ClearContents
             
-            ' Colocar importe según tipo de operación
-            If UCase(wsOrigen.Cells(i, "D").Value) = "ENTRADA" Then
-                wsDestino.Cells(filaDestino, "E").Value = wsOrigen.Cells(i, "F").Value
-            ElseIf UCase(wsOrigen.Cells(i, "D").Value) = "SALIDA" Then
-                wsDestino.Cells(filaDestino, "F").Value = wsOrigen.Cells(i, "F").Value
+            ' Si es SALIDA
+            ElseIf tipoOp = "SALIDA" Then
+                wsDestino.Cells(filaDestino, "C").Value = wsOrigen.Cells(i, "F").Value
+                
+                ' Construir texto SSI solo para SALIDAS
+                SSItext = ""
+                If wsOrigen.Cells(i, "M").Value <> "" Then SSItext = SSItext & "BIC Corresponsal: " & wsOrigen.Cells(i, "M").Value & vbNewLine
+                If wsOrigen.Cells(i, "N").Value <> "" Then SSItext = SSItext & "Banco Corresponsal: " & wsOrigen.Cells(i, "N").Value & vbNewLine
+                If wsOrigen.Cells(i, "P").Value <> "" Then SSItext = SSItext & "BIC Beneficiario: " & wsOrigen.Cells(i, "P").Value & vbNewLine
+                If wsOrigen.Cells(i, "Q").Value <> "" Then SSItext = SSItext & "Cuenta Beneficiario: " & wsOrigen.Cells(i, "Q").Value
+                
+                wsDestino.Cells(filaDestino, "D").Value = SSItext
+                wsDestino.Cells(filaDestino, "D").WrapText = True
+                wsDestino.Cells(filaDestino, "D").HorizontalAlignment = xlLeft
             End If
-            
-            ' Colocar SSI en columna H
-            wsDestino.Cells(filaDestino, "H").Value = SSItext
-            wsDestino.Cells(filaDestino, "H").WrapText = True
             
             ' Avanzar a la siguiente fila
             filaDestino = filaDestino + 1
             
-            ' Detener si se supera la fila 38
-            If filaDestino > 38 Then Exit For
+            ' Detener si supera el límite
+            If filaDestino > 29 Then Exit For
         End If
-        
     Next i
     
-    MsgBox "Proceso completado Datos cargados USD.", vbInformation
+    ' Formato contable para importes
+    With wsDestino.Range("B21:C29")
+        .NumberFormat = "_($* #,##0.00_);_($* (#,##0.00);_($* ""-""??_);_(@_)"
+        .HorizontalAlignment = xlCenter
+    End With
+    
+    ' Ajustar altura de filas por si el SSI tiene varias líneas
+    wsDestino.Rows("21:29").AutoFit
+    
+    MsgBox "? Proceso completado: Entradas y salidas USD cargadas (SSI solo en salidas).", vbInformation
 
 End Sub
-
 
 
