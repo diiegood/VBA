@@ -1,0 +1,120 @@
+Sub CargarDatosUSD_Rango_SalidaEntrada_Contrapartes()
+
+    Dim wsOrigen As Worksheet
+    Dim wsDestino As Worksheet
+    Dim ultimaFila As Long
+    Dim i As Long, filaDestino As Long
+    Dim SSItext As String
+    Dim tipoOp As String
+    Dim contraparte As String
+    
+    ' Asignar hojas
+    Set wsOrigen = ThisWorkbook.Sheets("Reporte de Garantias")
+    Set wsDestino = ActiveSheet
+    
+    ' Última fila con datos en hoja origen
+    ultimaFila = wsOrigen.Cells(wsOrigen.Rows.Count, "A").End(xlUp).Row
+    
+    ' Limpiar rango destino (A21:D29)
+    With wsDestino.Range("A21:D29")
+        .ClearContents
+        .Borders.LineStyle = xlNone
+    End With
+    
+    filaDestino = 21
+    
+    ' ===== PRIMERO PROCESAR TODAS LAS SALIDAS =====
+    For i = 2 To ultimaFila
+        If Trim(UCase(wsOrigen.Cells(i, "H").Value)) = "USD" Then
+            tipoOp = UCase(Trim(wsOrigen.Cells(i, "D").Value))
+            If tipoOp = "SALIDA" Then
+                
+                ' Obtener contraparte y reemplazar códigos por nombres completos
+                contraparte = wsOrigen.Cells(i, "C").Value
+                Select Case UCase(Trim(contraparte))
+                    Case "BBVI"
+                        contraparte = "Banco Bancomer S.A. de México"
+                    Case "CHMX"
+                        contraparte = "Chase Morgan Mexico S.A."
+                    Case "BBMX"
+                        contraparte = "Banamex Mexico S.A."
+                    Case "BSAN"
+                        contraparte = "Banco Santander Mexico S.A."
+                End Select
+                
+                ' Concatenar texto SSI
+                SSItext = ""
+                If wsOrigen.Cells(i, "M").Value <> "" Then SSItext = SSItext & "BIC Corresponsal: " & wsOrigen.Cells(i, "M").Value & vbNewLine
+                If wsOrigen.Cells(i, "N").Value <> "" Then SSItext = SSItext & "Banco Corresponsal: " & wsOrigen.Cells(i, "N").Value & vbNewLine
+                If wsOrigen.Cells(i, "P").Value <> "" Then SSItext = SSItext & "BIC Beneficiario: " & wsOrigen.Cells(i, "P").Value & vbNewLine
+                If wsOrigen.Cells(i, "Q").Value <> "" Then SSItext = SSItext & "Cuenta Beneficiario: " & wsOrigen.Cells(i, "Q").Value
+                
+                ' Pegar salida
+                wsDestino.Cells(filaDestino, "A").Value = contraparte
+                wsDestino.Cells(filaDestino, "A").WrapText = False
+                wsDestino.Cells(filaDestino, "B").ClearContents
+                wsDestino.Cells(filaDestino, "C").Value = wsOrigen.Cells(i, "F").Value
+                wsDestino.Cells(filaDestino, "D").Value = SSItext
+                wsDestino.Cells(filaDestino, "D").WrapText = True
+                
+                filaDestino = filaDestino + 1
+                If filaDestino > 29 Then Exit For
+            End If
+        End If
+    Next i
+    
+    ' ===== LUEGO PROCESAR TODAS LAS ENTRADAS =====
+    For i = 2 To ultimaFila
+        If Trim(UCase(wsOrigen.Cells(i, "H").Value)) = "USD" Then
+            tipoOp = UCase(Trim(wsOrigen.Cells(i, "D").Value))
+            If tipoOp = "ENTRADA" Then
+                
+                ' Obtener contraparte y reemplazar códigos por nombres completos
+                contraparte = wsOrigen.Cells(i, "C").Value
+                Select Case UCase(Trim(contraparte))
+                    Case "BBVI"
+                        contraparte = "Banco Bancomer S.A. de México"
+                    Case "CHMX"
+                        contraparte = "Chase Morgan Mexico S.A."
+                    Case "BBMX"
+                        contraparte = "Banamex Mexico S.A."
+                    Case "BSAN"
+                        contraparte = "Banco Santander Mexico S.A."
+                End Select
+                
+                ' Pegar entrada
+                wsDestino.Cells(filaDestino, "A").Value = contraparte
+                wsDestino.Cells(filaDestino, "A").WrapText = False
+                wsDestino.Cells(filaDestino, "B").Value = wsOrigen.Cells(i, "F").Value
+                wsDestino.Cells(filaDestino, "C").ClearContents
+                wsDestino.Cells(filaDestino, "D").ClearContents
+                
+                filaDestino = filaDestino + 1
+                If filaDestino > 29 Then Exit For
+            End If
+        End If
+    Next i
+    
+    ' ===== FORMATO GENERAL =====
+    With wsDestino.Range("A21:D29")
+        .Font.Name = "Arial"
+        .Font.Size = 11
+        .VerticalAlignment = xlCenter
+    End With
+    
+    ' Formato contabilidad y centrado de importes
+    With wsDestino.Range("B21:C29")
+        .NumberFormat = "_-$* #,##0.00_-;-$* #,##0.00_-;_-* ""-""??_-;_-@_-"
+        .HorizontalAlignment = xlCenter
+    End With
+    
+    ' Ajustar ancho solo para nombres y SSI
+    wsDestino.Columns("A").AutoFit
+    wsDestino.Columns("D").AutoFit
+    
+    ' Ajustar altura de filas según SSI
+    wsDestino.Rows("21:29").AutoFit
+    
+    MsgBox "✅ Datos USD cargados: primero SALIDAS, luego ENTRADAS, con contrapartes traducidas.", vbInformation
+
+End Sub
