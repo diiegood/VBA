@@ -1,0 +1,104 @@
+Sub SOI_USD()
+
+    Dim wsOrigen As Worksheet
+    Dim wsDestino As Worksheet
+    Dim ultimaFila As Long
+    Dim i As Long, filaDestino As Long
+    Dim SSItext As String
+    Dim tipoOp As String
+    Dim contraparte As String
+
+'##################################################################################################
+    'Asignación de hojas
+    Set wsOrigen = ThisWorkbook.Sheets("Reporte Garantias") ' hoja de origen
+    Set wsDestino = ActiveSheet                            ' hoja donde se trabaja
+    
+    'Última fila con datos
+    ultimaFila = wsOrigen.Cells(wsOrigen.Rows.Count, "A").End(xlUp).Row
+    
+    'Limpiar rango destino
+    With wsDestino.Range("A21:D29")
+        .ClearContents
+        .Borders.LineStyle = xlNone
+    End With
+    
+    filaDestino = 21
+
+'##################################################################################################
+' Procesar SALIDAS y ENTRADAS
+
+    For i = 2 To ultimaFila
+        
+        ' Solo USD
+        If Trim(UCase(wsOrigen.Cells(i, "H").Value)) = "USD" Then
+            
+            tipoOp = UCase(Trim(wsOrigen.Cells(i, "D").Value))
+            
+            ' Excluir registros con "SSISub"
+            If InStr(1, UCase(wsOrigen.Cells(i, "C").Value), "SSISUB") > 0 Then GoTo Siguiente
+            
+            ' Obtener contraparte normalizada
+            contraparte = wsOrigen.Cells(i, "C").Value
+            Select Case UCase(Trim(contraparte))
+                Case "BBVI": contraparte = "BBVA BANCOMER, S.A."
+                Case "CHMX": contraparte = "BANCO J.P. MORGAN S.A."
+                Case "CITIMEX": contraparte = "BANCO CITI MÉXICO S.A. INSTITUCIÓN DE BANCA MÚLTIPLE, GRUPO FINANCIERO CITI MÉXICO"
+                Case "BSAN": contraparte = "BANCO SANTANDER, S.A. INSTITUCION DE BANCA MULTIPLE GRUPO FINANCIERO SANTANDER"
+                Case "CBGSMX": contraparte = "GOLDMAN SACHS MEXICO CASA DE BOLSA"
+                Case "BNP PARIS": contraparte = "BNP PARIBAS"
+                Case "BBMX": contraparte = "BARCLAYS BANK MEXICO, S.A., INSTITUCION DE BANCA MULTIPLE, GRUPO FINANCIERO BARCLAYS MEXICO."
+                Case "RBMX": contraparte = "HSBC MEXICO, S.A. INSTITUCION DE BANCA MULTIPLE"
+            End Select
+            
+            ' Construir texto SSI (solo para SALIDAS)
+            SSItext = ""
+            If tipoOp = "SALIDA" Then
+                If wsOrigen.Cells(i, "M").Value <> "" Then SSItext = SSItext & "BIC Corresponsal: " & wsOrigen.Cells(i, "M").Value & vbNewLine
+                If wsOrigen.Cells(i, "N").Value <> "" Then SSItext = SSItext & "Banco Corresponsal: " & wsOrigen.Cells(i, "N").Value & vbNewLine
+                If wsOrigen.Cells(i, "P").Value <> "" Then SSItext = SSItext & "BIC Beneficiario: " & wsOrigen.Cells(i, "P").Value & vbNewLine
+                If wsOrigen.Cells(i, "Q").Value <> "" Then SSItext = SSItext & "Cuenta Beneficiario: " & wsOrigen.Cells(i, "Q").Value
+            End If
+            
+            ' Pegar datos según tipo
+            wsDestino.Cells(filaDestino, "A").Value = contraparte
+            wsDestino.Cells(filaDestino, "A").WrapText = False
+            
+            Select Case tipoOp
+                Case "SALIDA"
+                    wsDestino.Cells(filaDestino, "B").ClearContents
+                    wsDestino.Cells(filaDestino, "C").Value = wsOrigen.Cells(i, "F").Value
+                    wsDestino.Cells(filaDestino, "D").Value = SSItext
+                Case "ENTRADA"
+                    wsDestino.Cells(filaDestino, "B").Value = wsOrigen.Cells(i, "F").Value
+                    wsDestino.Cells(filaDestino, "C").ClearContents
+                    wsDestino.Cells(filaDestino, "D").ClearContents ' No SSI para entradas
+            End Select
+            
+            filaDestino = filaDestino + 1
+            If filaDestino > 29 Then Exit For
+            
+        End If
+        
+Siguiente:
+    Next i
+
+'##################################################################################################
+' Formato general
+
+    With wsDestino.Range("A21:D29")
+         .Font.Name = "Arial"
+         .Font.Size = 10
+         .VerticalAlignment = xlCenter
+    End With
+     
+    With wsDestino.Range("B21:C29")
+         .NumberFormat = "_($* #,##0.00_);_($* (#,##0.00);_($* ""-""??_);_(@_)"
+         .HorizontalAlignment = xlCenter
+    End With
+     
+    wsDestino.Columns("D").AutoFit
+    wsDestino.Rows("21:29").AutoFit
+        
+    MsgBox "Proceso completado SOI USD (Entradas sin SSI, Salidas con SSI)"
+
+End Sub
