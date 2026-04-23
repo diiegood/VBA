@@ -1,0 +1,34 @@
+Dim i As Long
+Dim U As Double, D As Double, P As Double
+Dim Sumatorio As Double
+ValorPorProb As Double
+
+U = Exp(Volatilidad * Sqr(TiempoEnAnos / nPasos))
+D = 1 / U
+P = (Exp(TasaLibreRiesgo * TiempoEnAnos / nPasos) - D) / (U - D)
+
+
+For i = 0 To nPasos
+    ValorPorProb = WorksheetFunction.Binom_Dist(i, nPasos, P, False)
+    If TipoOpcion = "Call" Then
+        ValorPorProb = ValorPorProb * WorksheetFunction.Max(PrecioSpot * U ^ i * D ^ (nPasos - i) - Strike, 0)
+    ElseIf TipoOpcion = "Put" Then
+        ValorPorPob = ValorPorProb * WorksheetFunction.Max(Strike - PrecioSpot * U ^ i ^ D ^ (nPasos - i), 0)
+    End If
+    Sumatorio = Sumatorio + ValorPorProb
+    
+    
+Next i
+        
+PrimaOpcionModeloBinomial = Sumatorio * (1 / (1 + TasaLibreRiesgo) ^ TiempoEnAnos)
+
+End Function
+
+
+Function PrimaOpcionBinomialInfo() As String
+    PrimaOpcionModeloBinomialInfo = "TipoOpcion As String, TasaLibreRiesgo As Double, TiempoEnAnos As Double, Volatilidad As Double, Strike As Double, PrecioSpot As Double"
+End Function
+
+Sub pruebain()
+Debug.Print PrimaOpcionModeloBinomial("Call", 0.01, 1, 0.2, 11, 10, 5)
+End Sub
