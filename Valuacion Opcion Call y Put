@@ -1,0 +1,46 @@
+'Valuación de Opciones con Black-Scholes
+Function ValuacionOpcion_BS(tipo_opcion As String, spot As Double, strike As Double, _
+rate As Double, time As Double, sigma As Double) As Double
+
+' Cálculo de parámetros d1 y d2
+' d1: rendimiento esperado y volatilidad ajustada
+' d2: probabilidad ajustada de terminar in the money
+
+Dim d1 As Double, d2 As Double
+Dim Nd1 As Double, Nd2 As Double
+Dim NMenosD1 As Double, NMenosD2 As Double
+
+With Application.WorksheetFunction
+
+    d1 = (Log(spot / strike) + (rate + (sigma ^ 2 / 2)) * time) / (sigma * Sqr(time))
+    
+    d2 = d1 - (sigma * Sqr(time))
+    
+    ' Distribución normal acumulada
+    Nd1 = .Norm_S_Dist(d1, True)
+    Nd2 = .Norm_S_Dist(d2, True)
+    
+    NMenosD1 = .Norm_S_Dist(-d1, True)
+    NMenosD2 = .Norm_S_Dist(-d2, True)
+
+End With
+
+If tipo_opcion = "Call" Then
+
+    ValuacionOpcion_BS = spot * Nd1 - strike * Exp(-rate * time) * Nd2
+
+ElseIf tipo_opcion = "Put" Then
+
+    ValuacionOpcion_BS = strike * Exp(-rate * time) * NMenosD2 - spot * NMenosD1
+
+Else
+
+    ValuacionOpcion_BS = 0
+
+End If
+
+Debug.Print "D1 = " & d1
+Debug.Print "D2 = " & d2
+
+End Function
+
